@@ -20,6 +20,8 @@ jobs:
 
       # - name: Install dependencies
       #   run: cargo build --release
+      - name: Add target
+        run: rustup target add wasm32-unknown-unknown
 
       - name: Build for WebAssembly
         run: cargo build --release --target wasm32-unknown-unknown
