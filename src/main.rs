@@ -18,7 +18,7 @@ const WALK_SPEED: f32 = 4.0;
 const MOUSE_SPEED: f32 = 0.001;
 const TURN_SPEED: f32 = 10.0;
 
-fn main() {
+pub fn main() {
     App::new()
         .add_plugins(DefaultPlugins)
         .insert_resource(settings::UserSettings::default())
