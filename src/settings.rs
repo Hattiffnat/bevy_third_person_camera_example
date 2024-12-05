@@ -25,6 +25,12 @@ pub struct UserKeymap {
     pub back: KeyCode,
     pub left: KeyCode,
     pub right: KeyCode,
+
+    pub camera_up: KeyCode,
+    pub camera_down: KeyCode,
+    pub camera_left: KeyCode,
+    pub camera_right: KeyCode,
+
     pub run: KeyCode,
     pub jump: KeyCode,
     pub interact: KeyCode,
@@ -37,6 +43,12 @@ impl Default for UserKeymap {
             back: KeyCode::KeyS,
             left: KeyCode::KeyA,
             right: KeyCode::KeyD,
+
+            camera_up: KeyCode::ArrowUp,
+            camera_down: KeyCode::ArrowDown,
+            camera_left: KeyCode::ArrowLeft,
+            camera_right: KeyCode::ArrowRight,
+
             run: KeyCode::ShiftLeft,
             jump: KeyCode::Space,
             interact: KeyCode::KeyE,
