@@ -8,10 +8,21 @@ use bevy::render::{
     render_resource::{Extent3d, TextureDimension, TextureFormat},
 };
 
+mod fps_counter;
 mod settings;
 
 #[derive(Component, Debug)]
-struct ThirdPersCameraTarget;
+struct ThirdPersCameraTarget {
+    pub look_dir: Dir3,
+}
+
+impl Default for ThirdPersCameraTarget {
+    fn default() -> Self {
+        Self {
+            look_dir: Dir3::NEG_Z,
+        }
+    }
+}
 
 #[derive(Component, Debug)]
 struct ThirdPersonCamera;
@@ -29,12 +40,18 @@ const CHAR_TURN_SPEED: f32 = 5.0;
 pub fn main() {
     App::new()
         .add_plugins(DefaultPlugins)
+        .add_plugins(fps_counter::FpsCounterPlugin)
         .insert_resource(settings::UserSettings::default())
         .add_systems(Startup, setup_scene)
         .add_systems(Update, camera_pivot_inherit_cube_translation)
         .add_systems(
             Update,
-            (sync_target_with_camera, character_keyboard_control)
+            (update_target_look, sync_target_with_look)
+                .run_if(direction_command_is_pressed),
+        )
+        .add_systems(
+            Update,
+            (character_keyboard_control)
                 .chain()
                 .run_if(direction_command_is_pressed),
         )
@@ -105,7 +122,7 @@ fn setup_scene(
 
     let cube = (
         Name::new("MyCube"),
-        ThirdPersCameraTarget,
+        ThirdPersCameraTarget::default(),
         Mesh3d(meshes.add(Cuboid::from_length(3.0))),
         MeshMaterial3d(debug_material),
         Transform::from_translation(CUBE_SPAWN),
@@ -131,27 +148,20 @@ fn setup_scene(
     );
 
     commands.spawn(cube);
-    let hoop_id = commands.spawn(pivot).id();
+    let pivot_id = commands.spawn(pivot).id();
     let camera_id = commands.spawn(camera).id();
 
-    commands.entity(hoop_id).add_child(camera_id);
+    commands.entity(pivot_id).add_child(camera_id);
 }
 
-fn sync_target_with_camera(
-    mut target_transform_q: Query<
-        &mut Transform,
-        (With<ThirdPersCameraTarget>, Without<ThirdPersonCamera>),
-    >,
-    pivot_transf_q: Query<
-        &Transform,
-        (With<ThirdPersCameraPivot>, Without<ThirdPersCameraTarget>),
-    >,
+fn update_target_look(
+    mut target_q: Query<&mut ThirdPersCameraTarget>,
+    pivot_transf_q: Query<&Transform, With<ThirdPersCameraPivot>>,
     user_settings: Res<settings::UserSettings>,
     keys: Res<ButtonInput<KeyCode>>,
-    time: Res<Time>,
 ) {
     // println!("turn_cube_out_of_camera");
-    let Ok(mut target_transf) = target_transform_q.get_single_mut() else {
+    let Ok(mut target) = target_q.get_single_mut() else {
         return;
     };
     let Ok(pivot_transf) = pivot_transf_q.get_single() else {
@@ -183,22 +193,29 @@ fn sync_target_with_camera(
         }
     } {
         // обнуляем ось Y
-        let Ok(movement_dir) = Dir3::new(new_dir.with_y(0.0)) else {
-            return;
+        if let Ok(new_dir) = Dir3::new(new_dir.with_y(0.0)) {
+            target.look_dir = new_dir
         };
+    }
+}
 
+fn sync_target_with_look(
+    mut target_transform_q: Query<
+        (&mut Transform, &ThirdPersCameraTarget),
+        With<ThirdPersCameraTarget>,
+    >,
+    time: Res<Time>,
+) {
+    for (mut target_transf, target) in target_transform_q.iter_mut() {
         target_transf.rotation = target_transf.rotation.rotate_towards(
-            target_transf.looking_to(movement_dir, Dir3::Y).rotation,
+            target_transf.looking_to(target.look_dir, Dir3::Y).rotation,
             CHAR_TURN_SPEED * time.delta_secs(),
         );
     }
 }
 
 fn character_keyboard_control(
-    mut target_transform_q: Query<
-        &mut Transform,
-        (With<ThirdPersCameraTarget>, Without<ThirdPersCameraPivot>),
-    >,
+    mut target_transform_q: Query<&mut Transform, With<ThirdPersCameraTarget>>,
     time: Res<Time>,
 ) {
     let Ok(mut target_transf) = target_transform_q.get_single_mut() else {
@@ -233,20 +250,18 @@ fn camera_pivot_inherit_cube_translation(
 fn mouse_camera_control(
     mut mouse_motion_reader: EventReader<MouseMotion>,
     mut pivot_transform_q: Query<
-        &mut Transform,
-        (With<ThirdPersCameraPivot>, Without<Camera>),
+        (&mut Transform, &ThirdPersCameraPivot),
+        With<ThirdPersCameraPivot>,
     >,
     time: Res<Time>,
 ) {
-    let Ok(mut pivot_transf) = pivot_transform_q.get_single_mut() else {
-        return;
-    };
+    for (mut pivot_transf, pivot) in pivot_transform_q.iter_mut() {
+        let delta: Vec2 = mouse_motion_reader.read().map(|motion| motion.delta).sum();
 
-    let delta: Vec2 = mouse_motion_reader.read().map(|motion| motion.delta).sum();
-
-    pivot_transf.rotate_y(-delta.x * MOUSE_SPEED * CAMERA_SPEED * time.delta_secs());
-    pivot_transf
-        .rotate_local_x(-delta.y * MOUSE_SPEED * CAMERA_SPEED * time.delta_secs());
+        pivot_transf.rotate_y(-delta.x * MOUSE_SPEED * CAMERA_SPEED * time.delta_secs());
+        pivot_transf
+            .rotate_local_x(-delta.y * MOUSE_SPEED * CAMERA_SPEED * time.delta_secs());
+    }
 }
 
 fn keyboard_camera_control(
@@ -339,4 +354,3 @@ fn toggle_cursor(mut window: Single<&mut Window>, input: Res<ButtonInput<KeyCode
         };
     }
 }
-
