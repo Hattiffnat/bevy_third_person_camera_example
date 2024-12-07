@@ -1,0 +1,30 @@
+[tasks.format]
+install_crate = "rustfmt"
+command = "cargo"
+args = ["fmt", "--", "--emit=files"]
+
+[tasks.build_linux]
+command = "cargo"
+args = ["build", "--release"]
+
+[tasks.install-bindgen]
+command = "cargo"
+args = ['install', 'wasm-bindgen-cli']
+
+[tasks.build_wasm]
+command = "cargo"
+args = ["build", "--release", "--target", "wasm32-unknown-unknown"]
+
+[tasks.copy_assets_to_ghpages]
+command = "cp"
+args = ["-r", "./assets", "./github_pages/" ]
+
+[tasks.ghpages]
+dependencies = ["install-bindgen", "build_wasm", "copy_assets_to_ghpages"]
+command = "wasm-bindgen"
+args = [
+    "--no-typescript",
+    "--target", "web",
+    "--out-dir", "./github_pages/",
+    "./target/wasm32-unknown-unknown/release/bevy_third_person_camera_example.wasm",
+]
