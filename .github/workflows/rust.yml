@@ -17,6 +17,12 @@ jobs:
 
     steps:
     - uses: actions/checkout@v4
+
+    - name: Set up Rust
+      uses: actions-rs/toolchain@v1
+      with:
+        toolchain: wasm32-unknown-unknown stable 
+        
     - name: Build
       run: |
         cargo install wasm-bindgen-cli
