@@ -17,7 +17,7 @@ args = ["build", "--release", "--target", "wasm32-unknown-unknown"]
 
 [tasks.copy_assets_to_ghpages]
 command = "cp"
-args = ["-r", "./assets", "./github_pages/" ]
+args = ["-r", "./assets", "./docs/" ]
 
 [tasks.ghpages]
 dependencies = ["install-bindgen", "build_wasm", "copy_assets_to_ghpages"]
@@ -25,6 +25,6 @@ command = "wasm-bindgen"
 args = [
     "--no-typescript",
     "--target", "web",
-    "--out-dir", "./github_pages/",
+    "--out-dir", "./docs/",
     "./target/wasm32-unknown-unknown/release/bevy_third_person_camera_example.wasm",
 ]
