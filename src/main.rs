@@ -1,6 +1,6 @@
 use core::f32;
 
-use bevy::{input::mouse::MouseMotion, prelude::*, window::CursorGrabMode};
+use bevy::{input::mouse::AccumulatedMouseMotion, prelude::*, window::CursorGrabMode};
 use settings::UserSettings;
 
 use bevy::render::{
@@ -33,7 +33,7 @@ struct ThirdPersCameraPivot;
 const CUBE_SPAWN: Vec3 = Vec3::new(0.0, 1.5, 0.0);
 
 const WALK_SPEED: f32 = 10.0;
-const MOUSE_SPEED: f32 = 0.8;
+const MOUSE_SPEED: f32 = 0.004;
 const CAMERA_SPEED: f32 = 1.0;
 const CHAR_TURN_SPEED: f32 = 5.0;
 
@@ -248,19 +248,12 @@ fn camera_pivot_inherit_cube_translation(
 }
 
 fn mouse_camera_control(
-    mut mouse_motion_reader: EventReader<MouseMotion>,
-    mut pivot_transform_q: Query<
-        (&mut Transform, &ThirdPersCameraPivot),
-        With<ThirdPersCameraPivot>,
-    >,
-    time: Res<Time>,
+    mouse_motion: Res<AccumulatedMouseMotion>,
+    mut pivot_transform_q: Query<&mut Transform, With<ThirdPersCameraPivot>>,
 ) {
-    for (mut pivot_transf, pivot) in pivot_transform_q.iter_mut() {
-        let delta: Vec2 = mouse_motion_reader.read().map(|motion| motion.delta).sum();
-
-        pivot_transf.rotate_y(-delta.x * MOUSE_SPEED * CAMERA_SPEED * time.delta_secs());
-        pivot_transf
-            .rotate_local_x(-delta.y * MOUSE_SPEED * CAMERA_SPEED * time.delta_secs());
+    for mut pivot_transf in pivot_transform_q.iter_mut() {
+        pivot_transf.rotate_y(MOUSE_SPEED * CAMERA_SPEED * -mouse_motion.delta.x);
+        pivot_transf.rotate_local_x(MOUSE_SPEED * CAMERA_SPEED * -mouse_motion.delta.y);
     }
 }
 
