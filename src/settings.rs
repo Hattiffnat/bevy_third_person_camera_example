@@ -14,12 +14,6 @@ impl Default for CameraSettings {
 }
 
 #[derive(Resource, Debug)]
-pub enum InputType {
-    MouseKeyboard,
-    Gamepad,
-}
-
-#[derive(Resource, Debug)]
 pub struct UserKeymap {
     pub forward: KeyCode,
     pub back: KeyCode,
@@ -30,10 +24,6 @@ pub struct UserKeymap {
     pub camera_down: KeyCode,
     pub camera_left: KeyCode,
     pub camera_right: KeyCode,
-
-    pub run: KeyCode,
-    pub jump: KeyCode,
-    pub interact: KeyCode,
 }
 
 impl Default for UserKeymap {
@@ -48,10 +38,6 @@ impl Default for UserKeymap {
             camera_down: KeyCode::ArrowDown,
             camera_left: KeyCode::ArrowLeft,
             camera_right: KeyCode::ArrowRight,
-
-            run: KeyCode::ShiftLeft,
-            jump: KeyCode::Space,
-            interact: KeyCode::KeyE,
         }
     }
 }
@@ -60,7 +46,6 @@ impl Default for UserKeymap {
 pub struct UserSettings {
     pub camera_settings: CameraSettings,
     pub mouse_keyboard_keymap: UserKeymap,
-    pub input_type: InputType,
 }
 
 impl Default for UserSettings {
@@ -68,7 +53,6 @@ impl Default for UserSettings {
         Self {
             camera_settings: CameraSettings::default(),
             mouse_keyboard_keymap: UserKeymap::default(),
-            input_type: InputType::MouseKeyboard,
         }
     }
 }
