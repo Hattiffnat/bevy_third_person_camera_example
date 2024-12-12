@@ -1,7 +1,3 @@
-//! This example illustrates how to create UI text and update it in a system.
-//!
-//! It displays the current FPS in the top left corner, as well as text that changes color
-//! in the bottom right. For text within a scene, please see the text2d example.
 
 use bevy::{
     color::palettes::css::GOLD,
@@ -34,7 +30,7 @@ fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
             Text::new("FPS: "),
             TextFont {
                 // This font is loaded and will be used instead of the default font.
-                // font: asset_server.load("fonts/FiraSans-Bold.ttf"),
+                font: asset_server.load("fonts/FiraSans-Bold.ttf"),
                 font_size: 20.0,
                 ..default()
             },
